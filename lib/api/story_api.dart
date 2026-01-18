@@ -5,6 +5,22 @@ import '../config/api_config.dart';
 import 'dart:developer';
 
 class StoryApi {
+  static Future<http.Response> getStoryStatus(String storyId) async {
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}/stories/$storyId');
+      log('Fetching story status from: $uri');
+
+      final response = await http.get(uri);
+
+      log('Story status response: ${response.body}');
+
+      return response;
+    } catch (e) {
+      log('Error fetching story status: $e');
+      rethrow;
+    }
+  }
+
   static Future<String> createStory({
     required String text,
     required File voiceFile,

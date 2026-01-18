@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:frontend/screens/story_status_screen.dart';
 import '../api/story_api.dart';
 import 'dart:io';
 import 'package:google_fonts/google_fonts.dart';
@@ -178,6 +179,11 @@ class _StoryTellerScreenState extends State<StoryTellerScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Story created: $storyId')));
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => StoryStatusScreen(storyId: storyId)),
+      );
     } catch (e) {
       if (!mounted) return;
 
