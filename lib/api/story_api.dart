@@ -58,4 +58,9 @@ class StoryApi {
       rethrow;
     }
   }
+
+  static String getChunkUrl(String storyId, int index) {
+    log('Get chunk URL for storyId: $storyId, index: $index');
+    return '${ApiConfig.baseUrl}/stories/$storyId/chunks/$index';
+  }
 }

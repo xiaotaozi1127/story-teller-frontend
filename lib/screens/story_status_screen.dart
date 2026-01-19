@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:frontend/screens/story_player_screen.dart';
+
 import '../api/story_api.dart';
 
 import 'package:flutter/material.dart';
@@ -103,6 +105,16 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
     return ElevatedButton(
       onPressed: () {
         // NEXT STEP: navigate to audio playback
+        debugPrint('Go to story player screen');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => StoryPlayerScreen(
+              storyId: widget.storyId,
+              totalChunks: _totalChunks,
+            ),
+          ),
+        );
       },
       child: const Text('Play story'),
     );
