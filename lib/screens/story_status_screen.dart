@@ -45,7 +45,7 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
       final data = jsonDecode(response.body);
 
       final chunks = data['chunks'] as List;
-      final completed = chunks.where((c) => c['status'] == 'done').length;
+      final completed = chunks.where((c) => c['status'] == 'ready').length;
 
       setState(() {
         _status = data['status'];
@@ -54,7 +54,7 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
         _loading = false;
       });
 
-      if (_status == 'completed' || _status == 'failed') {
+      if (_status == 'ready' || _status == 'failed') {
         _pollingTimer?.cancel();
       }
     } catch (e) {
