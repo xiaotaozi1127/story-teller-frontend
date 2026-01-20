@@ -20,7 +20,7 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
   final AudioPlayer _player = AudioPlayer();
 
   int _currentChunk = 0;
-  bool _isPlaying = false;
+  bool _isPlaying = true;
 
   @override
   void initState() {
@@ -31,6 +31,10 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
       if (state.processingState == ProcessingState.completed) {
         _playNextChunk();
       }
+      // Update UI based on actual player state
+      setState(() {
+        _isPlaying = state.playing;
+      });
     });
   }
 
@@ -53,6 +57,16 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
 
   void _playNextChunk() {
     _playChunk(_currentChunk + 1);
+  }
+
+  Future<void> _pausePlayback() async {
+    await _player.pause();
+    setState(() => _isPlaying = false);
+  }
+
+  Future<void> _resumePlayback() async {
+    await _player.play();
+    setState(() => _isPlaying = true);
   }
 
   @override
@@ -79,9 +93,13 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
               value: (_currentChunk + 1) / widget.totalChunks,
             ),
             const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _isPlaying ? null : () => _playChunk(_currentChunk),
-              child: const Text('Play'),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: _isPlaying ? _pausePlayback : _resumePlayback,
+                  child: Text(_isPlaying ? 'Pause' : 'Resume'),
+                ),
+              ],
             ),
           ],
         ),
