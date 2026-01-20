@@ -21,6 +21,8 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
 
   int _currentChunk = 0;
   bool _isPlaying = true;
+  Duration _currentPosition = Duration.zero;
+  Duration _totalDuration = Duration.zero;
 
   @override
   void initState() {
@@ -34,6 +36,20 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
       // Update UI based on actual player state
       setState(() {
         _isPlaying = state.playing;
+      });
+    });
+
+    // Listen to position changes
+    _player.positionStream.listen((position) {
+      setState(() {
+        _currentPosition = position;
+      });
+    });
+
+    // Listen to duration changes
+    _player.durationStream.listen((duration) {
+      setState(() {
+        _totalDuration = duration ?? Duration.zero;
       });
     });
   }
@@ -69,6 +85,12 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
     setState(() => _isPlaying = true);
   }
 
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
   @override
   void dispose() {
     _player.dispose();
@@ -90,7 +112,24 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
             ),
             const SizedBox(height: 24),
             LinearProgressIndicator(
-              value: (_currentChunk + 1) / widget.totalChunks,
+              value: _totalDuration.inMilliseconds > 0
+                  ? _currentPosition.inMilliseconds /
+                        _totalDuration.inMilliseconds
+                  : 0,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _formatDuration(_currentPosition),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                Text(
+                  _formatDuration(_totalDuration),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ),
             const SizedBox(height: 32),
             Row(
