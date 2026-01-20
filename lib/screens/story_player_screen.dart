@@ -21,6 +21,7 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
 
   int _currentChunk = 0;
   bool _isPlaying = true;
+  bool _isFinished = false;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
 
@@ -56,9 +57,13 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
 
   Future<void> _playChunk(int index) async {
     if (index >= widget.totalChunks) {
-      setState(() => _isPlaying = false);
+      setState(() {
+        _isPlaying = false;
+        _isFinished = true;
+      });
       return;
     }
+    setState(() => _isFinished = false);
 
     final url = StoryApi.getChunkUrl(widget.storyId, index);
 
@@ -135,8 +140,14 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
             Row(
               children: [
                 ElevatedButton(
-                  onPressed: _isPlaying ? _pausePlayback : _resumePlayback,
-                  child: Text(_isPlaying ? 'Pause' : 'Resume'),
+                  onPressed: _isFinished
+                      ? () => _playChunk(0)
+                      : (_isPlaying ? _pausePlayback : _resumePlayback),
+                  child: Text(
+                    _isFinished
+                        ? 'Play from beginning'
+                        : (_isPlaying ? 'Pause' : 'Resume'),
+                  ),
                 ),
               ],
             ),
