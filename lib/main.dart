@@ -34,12 +34,14 @@ class StoryTellerScreen extends StatefulWidget {
 }
 
 class _StoryTellerScreenState extends State<StoryTellerScreen> {
+  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _storyController = TextEditingController();
   bool _isLoading = false;
   File? _voiceFile;
 
   @override
   void dispose() {
+    _titleController.dispose();
     _storyController.dispose();
     super.dispose();
   }
@@ -75,6 +77,23 @@ class _StoryTellerScreenState extends State<StoryTellerScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
+              TextField(
+                controller: _titleController,
+                maxLines: 1,
+                decoration: InputDecoration(
+                  hintText: 'Enter story title',
+                  labelText: 'Story Title',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                ),
+                onChanged: (_) {
+                  setState(() {});
+                },
+              ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _storyController,
                 maxLines: 8,
@@ -171,6 +190,7 @@ class _StoryTellerScreenState extends State<StoryTellerScreen> {
     try {
       final storyId = await StoryApi.createStory(
         text: _storyController.text.trim(),
+        title: _titleController.text.trim(),
         voiceFile: _voiceFile!,
       );
 

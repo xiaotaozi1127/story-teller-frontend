@@ -24,16 +24,19 @@ class StoryApi {
   static Future<String> createStory({
     required String text,
     required File voiceFile,
+    String title = '',
     String language = 'en',
   }) async {
     log('Starting API call to create story');
     log('Story text: $text');
+    log('Story title: $title');
     log('Voice file path: ${voiceFile.path}');
 
-    final uri = Uri.parse('${ApiConfig.baseUrl}/stories/long-story');
+    final uri = Uri.parse('${ApiConfig.baseUrl}/stories');
 
     final request = http.MultipartRequest('POST', uri)
       ..fields['text'] = text
+      ..fields['title'] = title
       ..fields['language'] = language
       ..fields['chunk_size'] =
           '300' // Default chunk size as per backend contract
