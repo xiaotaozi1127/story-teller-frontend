@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import '../models/story_list_item.dart' as models;
 import 'dart:developer';
 
 class StoryApi {
@@ -65,5 +67,59 @@ class StoryApi {
   static String getChunkUrl(String storyId, int index) {
     log('Get chunk URL for storyId: $storyId, index: $index');
     return '${ApiConfig.baseUrl}/stories/$storyId/chunks/$index';
+  }
+
+  static Future<List<models.StoryListItem>> getStoryList() async {
+    try {
+      log('=== getStoryList() called ===');
+      final baseUrl = ApiConfig.baseUrl;
+      log('API Base URL: $baseUrl');
+
+      final uri = Uri.parse('${baseUrl}/stories');
+      log('Fetching story list from: $uri');
+
+      log('Initiating HTTP GET request...');
+      final response = await http
+          .get(uri)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              log('HTTP request timed out after 10 seconds');
+              throw SocketException('Failed to connect to server');
+            },
+          );
+
+      log('Received response with status code: ${response.statusCode}');
+      log('Story list response: ${response.body}');
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Failed to get story list (Status ${response.statusCode}): ${response.body}',
+        );
+      }
+
+      final data = jsonDecode(response.body);
+      log('Decoded JSON data: $data');
+
+      if (data is! List<dynamic>) {
+        throw Exception(
+          'Expected response to be an array, got ${data.runtimeType}: $data',
+        );
+      }
+
+      final List<dynamic> stories = data;
+
+      log('Successfully parsed ${stories.length} stories');
+
+      return stories.map((story) {
+        log('Parsing story: $story (type: ${story.runtimeType})');
+        return models.StoryListItem.fromJson(story as Map<String, dynamic>);
+      }).toList();
+    } catch (e) {
+      log('!!! Error fetching story list: $e');
+      log('Error type: ${e.runtimeType}');
+      log('Stack trace: ${StackTrace.current}');
+      rethrow;
+    }
   }
 }

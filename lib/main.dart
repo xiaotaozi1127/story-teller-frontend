@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:frontend/screens/story_status_screen.dart';
+import 'package:frontend/screens/story_list_screen.dart';
 import '../api/story_api.dart';
 import 'dart:io';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,7 +22,8 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      home: const StoryTellerScreen(),
+      home: const StoryListScreen(),
+      routes: {'/create-story': (context) => const StoryTellerScreen()},
     );
   }
 }
