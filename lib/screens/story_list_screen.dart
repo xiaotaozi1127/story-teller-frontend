@@ -18,7 +18,13 @@ class _StoryListScreenState extends State<StoryListScreen> {
   @override
   void initState() {
     super.initState();
-    _storyListFuture = StoryApi.getStoryList();
+    _loadStories();
+  }
+
+  void _loadStories() {
+    setState(() {
+      _storyListFuture = StoryApi.getStoryList();
+    });
   }
 
   @override
@@ -131,7 +137,10 @@ class _StoryListScreenState extends State<StoryListScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Navigator.of(context).pushNamed('/create-story');
+          Navigator.of(context).pushNamed('/create-story').then((_) {
+            // Refresh story list when returning from create story
+            _loadStories();
+          });
         },
         backgroundColor: Colors.deepPurple,
         label: Text('New Story', style: GoogleFonts.poppins()),
@@ -217,14 +226,28 @@ class _StoryCard extends StatelessWidget {
                   totalChunks: story.totalChunks,
                 ),
               ),
-            );
+            ).then((_) {
+              // Refresh story list when returning from player
+              if (context.mounted) {
+                final state = context
+                    .findAncestorStateOfType<_StoryListScreenState>();
+                state?._loadStories();
+              }
+            });
           } else {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => StoryStatusScreen(storyId: story.id),
               ),
-            );
+            ).then((_) {
+              // Refresh story list when returning from status
+              if (context.mounted) {
+                final state = context
+                    .findAncestorStateOfType<_StoryListScreenState>();
+                state?._loadStories();
+              }
+            });
           }
         },
         child: Padding(
