@@ -71,53 +71,89 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
   }
 
   Widget _buildStatusText() {
-    return Text(
-      'Status: $_status',
-      style: Theme.of(context).textTheme.titleLarge,
-    );
+    String text;
+
+    switch (_status) {
+      case 'processing':
+        text = '🎙️ Creating your story…';
+        break;
+      case 'ready':
+        text = '✅ Your story is ready!';
+        break;
+      case 'failed':
+        text = '❌ Story generation failed';
+        break;
+      default:
+        text = 'Preparing your story…';
+    }
+
+    return Text(text, style: Theme.of(context).textTheme.headlineSmall);
+  }
+
+  double get _progress {
+    if (_totalChunks == 0) return 0;
+    return _completedChunks / _totalChunks;
   }
 
   Widget _buildProgressBar() {
-    if (_totalChunks == 0) return const SizedBox();
+    if (_status != 'processing') return const SizedBox();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        LinearProgressIndicator(value: _completedChunks / _totalChunks),
-        const SizedBox(height: 8),
-        Text('$_completedChunks / $_totalChunks chunks generated'),
+        LinearProgressIndicator(value: _progress),
+        const SizedBox(height: 12),
+        Text(
+          '${(_progress * 100).toInt()}% completed',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'You can leave this screen, generation will continue.',
+          style: TextStyle(color: Colors.grey),
+        ),
       ],
     );
   }
 
   Widget _buildActionButton() {
-    if (_status == 'processing') {
-      return const Text('Generating voice...');
-    }
+    switch (_status) {
+      case 'processing':
+        return const SizedBox();
 
-    if (_status == 'failed') {
-      return const Text(
-        'Story generation failed',
-        style: TextStyle(color: Colors.red),
-      );
-    }
-
-    return ElevatedButton(
-      onPressed: () {
-        // NEXT STEP: navigate to audio playback
-        debugPrint('Go to story player screen');
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => StoryPlayerScreen(
-              storyId: widget.storyId,
-              totalChunks: _totalChunks,
+      case 'failed':
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'Something went wrong while generating your story.',
+              style: TextStyle(color: Colors.red),
             ),
+          ],
+        );
+
+      case 'ready':
+        return SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => StoryPlayerScreen(
+                    storyId: widget.storyId,
+                    totalChunks: _totalChunks,
+                  ),
+                ),
+              );
+            },
+            child: const Text('▶ Play story'),
           ),
         );
-      },
-      child: const Text('Play story'),
-    );
+
+      default:
+        return const SizedBox();
+    }
   }
 
   @override
