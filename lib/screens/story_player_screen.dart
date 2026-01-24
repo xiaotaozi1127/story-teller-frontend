@@ -111,6 +111,14 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).popUntil((route) => route.isFirst),
+            style: TextButton.styleFrom(foregroundColor: Colors.white),
+            child: const Text('Story List'),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

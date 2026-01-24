@@ -143,8 +143,11 @@ class _StoryListScreenState extends State<StoryListScreen> {
           });
         },
         backgroundColor: Colors.deepPurple,
-        label: Text('New Story', style: GoogleFonts.poppins()),
-        icon: const Icon(Icons.add),
+        label: Text(
+          'New Story',
+          style: GoogleFonts.poppins(color: Colors.white),
+        ),
+        icon: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
