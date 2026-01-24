@@ -311,19 +311,6 @@ class _StoryCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.audiotrack, size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${story.totalChunks} chunks',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
                       Icon(Icons.schedule, size: 14, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
