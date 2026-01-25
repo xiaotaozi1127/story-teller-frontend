@@ -5,7 +5,6 @@ import 'package:frontend/screens/story_player_screen.dart';
 import '../api/story_api.dart';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 class StoryStatusScreen extends StatefulWidget {
   final String storyId;
@@ -24,11 +23,31 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
   int _completedChunks = 0;
   bool _loading = true;
 
+  double _targetProgress = 0.0; // real backend progress
+  double _displayProgress = 0.0; // fake smooth progress
+  Timer? _smoothTimer;
+
+  void _startSmoothProgress() {
+    _smoothTimer = Timer.periodic(const Duration(milliseconds: 60), (_) {
+      if (!mounted) return;
+
+      setState(() {
+        final delta = _targetProgress - _displayProgress;
+        if (delta.abs() < 0.002) {
+          _displayProgress = _targetProgress;
+        } else {
+          _displayProgress += delta * 0.15;
+        }
+      });
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchStatus();
     _startPolling();
+    _startSmoothProgress();
   }
 
   void _startPolling() {
@@ -48,11 +67,14 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
 
       final chunks = data['chunks'] as List;
       final completed = chunks.where((c) => c['status'] == 'ready').length;
+      final total = data['total_chunks'] as int;
+      final newProgress = total == 0 ? 0.0 : completed / total;
 
       setState(() {
         _status = data['status'];
         _totalChunks = data['total_chunks'];
         _completedChunks = completed;
+        _targetProgress = newProgress;
         _loading = false;
       });
 
@@ -67,49 +89,42 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
   @override
   void dispose() {
     _pollingTimer?.cancel();
+    _smoothTimer?.cancel();
     super.dispose();
   }
 
   Widget _buildStatusText() {
     String text;
-
-    switch (_status) {
-      case 'processing':
-        text = '🎙️ Creating your story…';
-        break;
-      case 'ready':
-        text = '✅ Your story is ready!';
-        break;
-      case 'failed':
-        text = '❌ Story generation failed';
-        break;
-      default:
-        text = 'Preparing your story…';
+    if (_completedChunks == 0) {
+      text = 'Preparing voice model…';
+    } else if (_status == 'processing') {
+      text = 'Generating story audio…';
+    } else if (_status == 'ready') {
+      text = 'Story ready 🎉';
+    } else {
+      text = 'Generation failed';
     }
 
-    return Text(text, style: Theme.of(context).textTheme.headlineSmall);
-  }
-
-  double get _progress {
-    if (_totalChunks == 0) return 0;
-    return _completedChunks / _totalChunks;
+    return Text(text, style: Theme.of(context).textTheme.titleLarge);
   }
 
   Widget _buildProgressBar() {
     if (_status != 'processing') return const SizedBox();
 
+    final percent = (_displayProgress * 100).clamp(0, 100).toInt();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        LinearProgressIndicator(value: _progress),
+        LinearProgressIndicator(value: _displayProgress),
         const SizedBox(height: 12),
         Text(
-          '${(_progress * 100).toInt()}% completed',
+          '$percent% completed',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 4),
         const Text(
-          'You can leave this screen, generation will continue.',
+          'You can leave this screen. Generation will continue.',
           style: TextStyle(color: Colors.grey),
         ),
       ],
@@ -182,9 +197,9 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildStatusText(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   _buildProgressBar(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
                   _buildActionButton(),
                 ],
               ),
