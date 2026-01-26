@@ -24,30 +24,12 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
   bool _loading = true;
 
   double _targetProgress = 0.0; // real backend progress
-  double _displayProgress = 0.0; // fake smooth progress
-  Timer? _smoothTimer;
-
-  void _startSmoothProgress() {
-    _smoothTimer = Timer.periodic(const Duration(milliseconds: 60), (_) {
-      if (!mounted) return;
-
-      setState(() {
-        final delta = _targetProgress - _displayProgress;
-        if (delta.abs() < 0.002) {
-          _displayProgress = _targetProgress;
-        } else {
-          _displayProgress += delta * 0.15;
-        }
-      });
-    });
-  }
 
   @override
   void initState() {
     super.initState();
     _fetchStatus();
     _startPolling();
-    _startSmoothProgress();
   }
 
   void _startPolling() {
@@ -68,7 +50,7 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
       final chunks = data['chunks'] as List;
       final completed = chunks.where((c) => c['status'] == 'ready').length;
       final total = data['total_chunks'] as int;
-      final newProgress = total == 0 ? 0.0 : completed / total;
+      final newProgress = data['progress_percentage'] as double;
 
       setState(() {
         _status = data['status'];
@@ -89,7 +71,6 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
   @override
   void dispose() {
     _pollingTimer?.cancel();
-    _smoothTimer?.cancel();
     super.dispose();
   }
 
@@ -111,12 +92,12 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
   Widget _buildProgressBar() {
     if (_status != 'processing') return const SizedBox();
 
-    final percent = (_displayProgress * 100).clamp(0, 100).toInt();
+    final percent = (_targetProgress).clamp(0, 100).toInt();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        LinearProgressIndicator(value: _displayProgress),
+        LinearProgressIndicator(value: _targetProgress / 100),
         const SizedBox(height: 12),
         Text(
           '$percent% completed',
