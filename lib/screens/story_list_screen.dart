@@ -227,6 +227,7 @@ class _StoryCard extends StatelessWidget {
                 builder: (_) => StoryPlayerScreen(
                   storyId: story.id,
                   totalChunks: story.totalChunks,
+                  totalDurationSeconds: story.totalDurationSeconds,
                 ),
               ),
             ).then((_) {

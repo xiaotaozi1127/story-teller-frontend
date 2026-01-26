@@ -5,11 +5,13 @@ import '../api/story_api.dart';
 class StoryPlayerScreen extends StatefulWidget {
   final String storyId;
   final int totalChunks;
+  final double totalDurationSeconds;
 
   const StoryPlayerScreen({
     super.key,
     required this.storyId,
     required this.totalChunks,
+    required this.totalDurationSeconds,
   });
 
   @override
@@ -23,7 +25,10 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
   bool _isPlaying = true;
   bool _isFinished = false;
   Duration _currentPosition = Duration.zero;
-  Duration _totalDuration = Duration.zero;
+  Duration _currentChunkDuration = Duration.zero;
+  
+  // Track durations of completed chunks for overall progress calculation
+  final List<Duration> _completedChunkDurations = [];
 
   @override
   void initState() {
@@ -32,6 +37,10 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
 
     _player.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed) {
+        // Save the duration of the completed chunk before moving to next
+        if (_currentChunkDuration.inMilliseconds > 0) {
+          _completedChunkDurations.add(_currentChunkDuration);
+        }
         _playNextChunk();
       }
       // Update UI based on actual player state
@@ -50,19 +59,29 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
     // Listen to duration changes
     _player.durationStream.listen((duration) {
       setState(() {
-        _totalDuration = duration ?? Duration.zero;
+        _currentChunkDuration = duration ?? Duration.zero;
       });
     });
   }
 
   Future<void> _playChunk(int index) async {
     if (index >= widget.totalChunks) {
+      // Save the duration of the last chunk when finished
+      if (_currentChunkDuration.inMilliseconds > 0) {
+        _completedChunkDurations.add(_currentChunkDuration);
+      }
       setState(() {
         _isPlaying = false;
         _isFinished = true;
       });
       return;
     }
+    
+    // Reset if starting from beginning
+    if (index == 0) {
+      _completedChunkDurations.clear();
+    }
+    
     setState(() => _isFinished = false);
 
     final url = StoryApi.getChunkUrl(widget.storyId, index);
@@ -96,6 +115,22 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
+  Duration _getOverallElapsedTime() {
+    // Sum of all completed chunks' durations
+    final completedDuration = _completedChunkDurations.fold<Duration>(
+      Duration.zero,
+      (sum, duration) => sum + duration,
+    );
+    // Add current chunk's position
+    return completedDuration + _currentPosition;
+  }
+
+  Duration _getOverallTotalDuration() {
+    return Duration(
+      milliseconds: (widget.totalDurationSeconds * 1000).round(),
+    );
+  }
+
   @override
   void dispose() {
     _player.dispose();
@@ -125,15 +160,11 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Playing chunk ${_currentChunk + 1} / ${widget.totalChunks}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
             const SizedBox(height: 24),
             LinearProgressIndicator(
-              value: _totalDuration.inMilliseconds > 0
-                  ? _currentPosition.inMilliseconds /
-                        _totalDuration.inMilliseconds
+              value: _getOverallTotalDuration().inMilliseconds > 0
+                  ? _getOverallElapsedTime().inMilliseconds /
+                        _getOverallTotalDuration().inMilliseconds
                   : 0,
             ),
             const SizedBox(height: 8),
@@ -141,11 +172,11 @@ class _StoryPlayerScreenState extends State<StoryPlayerScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _formatDuration(_currentPosition),
+                  _formatDuration(_getOverallElapsedTime()),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 Text(
-                  _formatDuration(_totalDuration),
+                  _formatDuration(_getOverallTotalDuration()),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],

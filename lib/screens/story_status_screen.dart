@@ -22,6 +22,7 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
   int _totalChunks = 0;
   int _completedChunks = 0;
   bool _loading = true;
+  double _totalDurationSeconds = 0.0;
 
   double _targetProgress = 0.0; // real backend progress
 
@@ -57,6 +58,7 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
         _totalChunks = data['total_chunks'];
         _completedChunks = completed;
         _targetProgress = newProgress;
+        _totalDurationSeconds = (data['total_duration_seconds'] as num?)?.toDouble() ?? 0.0;
         _loading = false;
       });
 
@@ -139,6 +141,7 @@ class _StoryStatusScreenState extends State<StoryStatusScreen> {
                   builder: (_) => StoryPlayerScreen(
                     storyId: widget.storyId,
                     totalChunks: _totalChunks,
+                    totalDurationSeconds: _totalDurationSeconds,
                   ),
                 ),
               );
