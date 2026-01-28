@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/screens/story_list_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:frontend/screens/story_teller_screen.dart';
+import 'package:frontend/screens/new_story_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
       home: const StoryListScreen(),
-      routes: {'/create-story': (context) => const StoryTellerScreen()},
+      routes: {'/create-story': (context) => const NewStoryScreen()},
     );
   }
 }

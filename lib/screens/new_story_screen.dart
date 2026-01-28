@@ -7,14 +7,14 @@ import 'package:google_fonts/google_fonts.dart';
 import '../api/story_api.dart';
 import 'story_status_screen.dart';
 
-class StoryTellerScreen extends StatefulWidget {
-  const StoryTellerScreen({super.key});
+class NewStoryScreen extends StatefulWidget {
+  const NewStoryScreen({super.key});
 
   @override
-  State<StoryTellerScreen> createState() => _StoryTellerScreenState();
+  State<NewStoryScreen> createState() => _NewStoryScreenState();
 }
 
-class _StoryTellerScreenState extends State<StoryTellerScreen> {
+class _NewStoryScreenState extends State<NewStoryScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _storyController = TextEditingController();
   bool _isLoading = false;
@@ -114,12 +114,11 @@ class _StoryTellerScreenState extends State<StoryTellerScreen> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed:
-                    _isLoading ||
-                            _storyController.text.trim().isEmpty ||
-                            _voiceFile == null
-                        ? null
-                        : _onSubmit,
+                onPressed: _isLoading ||
+                        _storyController.text.trim().isEmpty ||
+                        _voiceFile == null
+                    ? null
+                    : _onSubmit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
                   foregroundColor: Colors.white,
