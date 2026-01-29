@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../config/api_config.dart';
 import '../models/voice_item.dart' as models;
 import 'dart:developer';
@@ -20,17 +21,23 @@ class VoiceApi {
     final request = http.MultipartRequest('POST', uri)
       ..fields['name'] = name
       ..fields['language'] = language
-      ..files.add(await http.MultipartFile.fromPath('voice', voiceFile.path));
+      ..files.add(
+        await http.MultipartFile.fromPath(
+          'voice',
+          voiceFile.path,
+          contentType: MediaType('audio', 'wav'), // or 'mpeg', etc.
+        ),
+      );
 
     try {
       log('Send create voice API request');
       final response = await request.send().timeout(
-            const Duration(seconds: 10),
-            onTimeout: () {
-              log('HTTP request timed out after 10 seconds');
-              throw const SocketException('Failed to connect to server');
-            },
-          );
+        const Duration(seconds: 10),
+        onTimeout: () {
+          log('HTTP request timed out after 10 seconds');
+          throw const SocketException('Failed to connect to server');
+        },
+      );
 
       final body = await response.stream.bytesToString();
       log('API response: $body');
